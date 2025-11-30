@@ -1,0 +1,55 @@
+/frontend/logs
+/frontend/*.log
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/lerna-debug.log*
+
+/frontend/node_modules
+/frontend/.DS_Store
+/frontend/dist
+/frontend/dist-ssr
+/frontend/coverage
+/frontend/*.local
+/frontend/*.tsbuildinfo
+/frontend/.eslintcache
+
+/frontend/cypress/videos/
+/frontend/cypress/screenshots/
+/frontend/__screenshots__/
+
+/backend/HELP.md
+/backend/target/
+/backend/.mvn/wrapper/maven-wrapper.jar
+!/backend/**/src/main/**/target/
+/backend/**/src/test/**/target/
+!/backend/**/src/main/**/build/
+/backend/build/
+!/backend/**/src/test/**/build/
+
+# VS Code
+**/.vscode/*
+!**/.vscode/extensions.json
+
+# IntelliJ IDEA
+**/.idea
+**/*.iws
+**/*.iml
+**/*.ipr
+
+# Eclipse / STS
+**/.apt_generated
+**/.classpath
+**/.factorypath
+**/.project
+**/.settings
+**/.springBeans
+**/.sts4-cache
+
+# NetBeans
+**/nbproject/private/
+**/nbbuild/
+**/nbdist/
+**/.nb-gradle/
+**/dist/
