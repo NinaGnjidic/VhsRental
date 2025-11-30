@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:18.1
+    container_name: vhs-postgres
+    environment:
+      POSTGRES_DB: vhs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - vhs-postgres-data:/var/lib/postgresql
+    networks:
+      - vhs-network
+
+  backend:
+    build: ./backend
+    container_name: vhs-app
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vhs
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_HIKARI_INITIALIZATION_FAIL_TIMEOUT: -1
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    networks:
+      - vhs-network
+
+  frontend:
+    build: ./frontend
+    container_name: vhs-frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://backend:8080
+    ports:
+      - "5173:5173"
+    networks:
+      - vhs-network
+    stdin_open: true
+    tty: true
+    command: ["npm", "run", "dev", "--", "--host"]
+
+volumes:
+  vhs-postgres-data:
+
+networks:
+  vhs-network:
+    driver: bridge
