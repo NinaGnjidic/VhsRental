@@ -1,4 +1,4 @@
-export async function fetchPost(path, body) {
+export const fetchPost = async (path, body) => {
   return await fetch(import.meta.env.VITE_API_URL + path, {
     method: 'POST',
     headers: {
@@ -9,7 +9,7 @@ export async function fetchPost(path, body) {
   })
 }
 
-export async function fetchGet(path) {
+export const fetchGet = async (path) => {
   return await fetch(import.meta.env.VITE_API_URL + path, {
     headers: {
       'Content-Type': 'application/json',
@@ -18,7 +18,7 @@ export async function fetchGet(path) {
   })
 }
 
-export async function fetchDelete(path, body) {
+export const fetchDelete = async (path, body) => {
   return await fetch(import.meta.env.VITE_API_URL + path, {
     method: 'DELETE',
     headers: {
@@ -29,7 +29,7 @@ export async function fetchDelete(path, body) {
   })
 }
 
-export async function fetchPut(path, body) {
+export const fetchPut = async (path, body) => {
   return await fetch(import.meta.env.VITE_API_URL + path, {
     method: 'PUT',
     headers: {
@@ -40,7 +40,7 @@ export async function fetchPut(path, body) {
   })
 }
 
-export async function fetchPatch(path, body) {
+export const fetchPatch = async (path, body) => {
   return await fetch(import.meta.env.VITE_API_URL + path, {
     method: 'PATCH',
     headers: {

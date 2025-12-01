@@ -1,22 +1,18 @@
 <template>
   <Dialog v-model:visible="visible" modal :header="dialogTitle" :style="{ width: '25rem' }">
-    <span class="text-surface-500 block mb-8">{{ dialogDescription }}</span>
-
+    <span class="block mb-4">{{ dialogDescription }}</span>
     <div class="flex items-center gap-4 mb-4">
       <label for="title" class="font-semibold w-24">Title</label>
       <InputText id="title" class="flex-auto" autocomplete="off" v-model="internalVhs.title" />
     </div>
-
     <div class="flex items-center gap-4 mb-4">
       <label for="genre" class="font-semibold w-24">Genre</label>
       <InputText id="genre" class="flex-auto" autocomplete="off" v-model="internalVhs.genre" />
     </div>
-
     <div class="flex items-center gap-4 mb-8">
       <label for="releaseYear" class="font-semibold w-24">Release Year</label>
       <DatePicker id="releaseYear" v-model="releaseYearDate" view="year" dateFormat="yy" showIcon />
     </div>
-
     <div class="flex justify-end gap-2">
       <Button type="button" label="Cancel" severity="secondary" @click="cancelDialog" />
       <Button type="button" label="Save" @click="saveDialog" />
@@ -40,7 +36,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'save', 'cancel'])
 
-// Dialog visibility
 const visible = ref(props.modelValue)
 watch(
   () => props.modelValue,
@@ -48,7 +43,6 @@ watch(
 )
 watch(visible, (val) => emit('update:modelValue', val))
 
-// Internal copy of VHS for safe editing
 const internalVhs = reactive({
   id: props.vhs.id || '',
   title: props.vhs.title || '',
@@ -56,10 +50,8 @@ const internalVhs = reactive({
   releaseYear: props.vhs.releaseYear || new Date().getFullYear(),
 })
 
-// Date object for the year picker
-const releaseYearDate = ref(new Date())
+const releaseYearDate = ref(new Date((props.vhs.releaseYear || new Date().getFullYear()), 0, 1))
 
-// Populate internalVhs whenever dialog opens
 watch(visible, (val) => {
   if (val) {
     internalVhs.id = props.vhs.id || ''
@@ -70,20 +62,19 @@ watch(visible, (val) => {
   }
 })
 
-// Sync DatePicker to year number
 watch(releaseYearDate, (val) => {
   if (val instanceof Date && !isNaN(val)) {
     internalVhs.releaseYear = val.getFullYear()
   }
 })
 
-function cancelDialog() {
+const cancelDialog = () => {
   visible.value = false
   emit('cancel')
 }
 
-function saveDialog() {
+const saveDialog = () => {
   visible.value = false
-  emit('save', { ...internalVhs }) // parent receives updated copy
+  emit('save', { ...internalVhs })
 }
 </script>

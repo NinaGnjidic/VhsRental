@@ -9,7 +9,7 @@
     </TabList>
     <TabPanels>
       <TabPanel value="0">
-        <VhsCardList @rent="onVhsRented" />
+        <VhsCardList @rentalsChange="onRentalsChange" />
       </TabPanel>
       <TabPanel value="1">
         <RentalList ref="rentalListRef" />
@@ -35,5 +35,5 @@ import Toast from 'primevue/toast'
 
 const rentalListRef = ref(null)
 
-const onVhsRented = () => rentalListRef.value?.loadRentals()
+const onRentalsChange = () => rentalListRef.value?.loadRentals()
 </script>

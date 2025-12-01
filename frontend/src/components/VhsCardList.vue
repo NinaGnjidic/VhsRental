@@ -8,7 +8,7 @@
         placeholder="Select Release Year"
         showClear
       />
-      <Button icon="pi pi-search" label="Search" @click="searchVhs" />
+      <Button icon="pi pi-search" label="Search" @click="loadVhs" />
     </div>
     <Button icon="pi pi-plus" variant="outlined" label="Add VHS" @click="createVhs" />
     <VhsDialog
@@ -17,7 +17,7 @@
       dialogTitle="Create VHS"
       dialogDescription="Please insert the VHS information below."
       @save="onVhsCreated"
-      @cancel="onVhsCreateCancel"
+      @cancel="loadVhs"
     />
   </div>
   <div class="flex flex-wrap gap-4">
@@ -25,7 +25,8 @@
       v-for="vhs in vhsList"
       :vhs="vhs"
       :key="vhs.id"
-      @delete="onVhsDeleted"
+      @delete="onVhsEdited"
+      @edit="onVhsEdited"
       @rent="onVhsRented"
     />
   </div>
@@ -33,104 +34,113 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchGet, fetchPost } from '@/services/http'
+import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
-
 import Dropdown from 'primevue/dropdown'
-
 import VhsDialog from '@/components/VhsDialog.vue'
-
 import VhsCard from '@/components/VhsCard.vue'
-const emit = defineEmits(['rent'])
+import { fetchGet, fetchPost } from '@/services/http'
+
+const emit = defineEmits(['rentalsChange'])
 
 const vhsList = ref([])
 const genres = ref([])
 const releaseYears = ref([])
 const selectedGenre = ref(null)
 const selectedReleaseYear = ref(null)
-const createVisible = ref(false)
 
-// fetch data when component mounts
-onMounted(async () => {
-  await initData()
-})
+const toast = useToast()
 
-async function initData() {
+onMounted(async () => await loadData())
+
+const loadData = async () => {
   vhsList.value = await getVhs()
   genres.value = await getGenres()
   releaseYears.value = await getReleaseYears()
 }
 
-async function getGenres() {
+const getGenres = async () => {
   try {
     const res = await fetchGet('/vhs/genres')
-    if (!res.ok) throw new Error('Failed to fetch VHS genres')
+    if (res.status != 200) {
+      const errorDetail = await res.text()
+      showErrorToast('Can not get genres', errorDetail)
+    }
     return res.json()
   } catch (err) {
-    console.error(err)
+    showErrorToast('Can not get genres', err)
   }
 }
 
-async function getReleaseYears() {
+const getReleaseYears = async () => {
   try {
     const res = await fetchGet('/vhs/releaseYears')
-    if (!res.ok) throw new Error('Failed to fetch VHS release years')
+    if (res.status != 200) {
+      const errorDetail = await res.text()
+      showErrorToast('Can not get release years', errorDetail)
+    }
     return res.json()
   } catch (err) {
-    console.error(err)
+    showErrorToast('Can not get release years', err)
   }
 }
 
-async function searchVhs() {
-  vhsList.value = await getVhs()
-}
+const loadVhs = async () => (vhsList.value = await getVhs())
 
-async function getVhs() {
+const getVhs = async () => {
   try {
     const params = new URLSearchParams()
     if (selectedGenre.value) params.append('genre', selectedGenre.value)
     if (selectedReleaseYear.value) params.append('releaseYear', selectedReleaseYear.value)
 
     const res = await fetchGet(`/vhs?${params.toString()}`)
-    if (!res.ok) throw new Error('Failed to fetch VHS data')
+    if (res.status != 200) {
+      const errorDetail = await res.text()
+      showErrorToast('Failed to fetch VHS data', errorDetail)
+    }
     return res.json()
   } catch (err) {
-    console.error(err)
+    showErrorToast('Failed to fetch VHS data', err)
   }
 }
 
-function createVhs() {
-  createVisible.value = true
-}
+const createVisible = ref(false)
 
-async function onVhsCreated(createdVhs) {
+const createVhs = () => (createVisible.value = true)
+
+const onVhsCreated = async (createdVhs) => {
   createVisible.value = false
-  console.log(createdVhs)
 
   const res = await fetchPost('/vhs', createdVhs)
-  if (!res.ok) throw new Error('Failed to create VHS')
+  if (res.status != 201) {
+    const errorDetail = await res.text()
+    showErrorToast('Failed to create VHS', errorDetail)
+  } else {
+    toast.add({
+      severity: 'success',
+      summary: 'VHS created',
+      detail: `${createdVhs.title} has been created successfully`,
+      group: 'bl',
+      life: 3000,
+    })
+  }
 
-  await initData()
+  await loadData()
 }
 
-async function onVhsCreateCancel(vhs) {
-  vhsList.value = await getVhs()
+const onVhsRented = (rental) => emit('rentalsChange', rental)
+
+const onVhsEdited = async (rental) => {
+  await loadData()
+  emit('rentalsChange', rental)
 }
 
-async function onVhsDeleted(vhsDeleted) {
-  await initData()
-}
-
-async function onVhsRented(rental) {
-  console.log(rental)
-  emit('rent', rental)
-}
+const showErrorToast = (summary, detail) =>
+  toast.add({
+    severity: 'error',
+    summary,
+    detail: detail || 'Error',
+    group: 'bl',
+    life: 3000,
+  })
 </script>
-
-<style>
-/* optional styling */
-.flex-wrap {
-  display: flex;
-  flex-wrap: wrap;
-}
-</style>

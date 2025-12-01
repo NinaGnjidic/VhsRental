@@ -1,5 +1,5 @@
 <template>
-  <DataTable :value="rentals" paginator :rows="10" responsiveLayout="scroll" :rowClass="rowClass">
+  <DataTable :value="rentals" paginator :rows="10" responsiveLayout="scroll">
     <!-- VHS Title -->
     <Column field="vhs.title" header="VHS" sortable></Column>
 
@@ -78,104 +78,86 @@ import { ref, onMounted } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import { fetchGet, fetchPatch, fetchDelete } from '@/services/http'
 import { useToast } from 'primevue/usetoast'
+import { fetchGet, fetchPatch, fetchDelete } from '@/services/http'
 
-const toast = useToast()
 const rentals = ref([])
 
-// Fetch rentals from API
-async function loadRentals() {
+const toast = useToast()
+
+onMounted(async () => await loadRentals())
+
+const loadRentals = async () => {
   try {
     const res = await fetchGet('/rentals')
-    if (!res.ok) throw new Error('Failed to fetch rentals')
-    rentals.value = await res.json()
+    if (res.status != 200) {
+      const errorDetail = await res.text()
+      showErrorToast('Can not get rentals', errorDetail)
+    } else {
+      rentals.value = await res.json()
+    }
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error loading rentals',
-      detail: err.message,
-      life: 3000,
-    })
+    showErrorToast('Can not get rentals', err)
   }
 }
 
-onMounted(loadRentals)
+const formatDate = (field) => (rowData) => rowData[field] ? new Date(rowData[field]).toLocaleDateString() : '-'
 
-// Format date helper
-const formatDate = (field) => (rowData) =>
-  rowData[field] ? new Date(rowData[field]).toLocaleDateString() : '-'
+const formatFee = (rowData) => (rowData.lateFee ? `$${rowData.lateFee.toFixed(2)}` : '$0.00')
 
-// Format lateFee
-function formatFee(rowData) {
-  return rowData.lateFee ? `$${rowData.lateFee.toFixed(2)}` : '$0.00'
-}
-
-// Row highlight for overdue
-function rowClass(rowData) {
-  if (!rowData.returnDate && new Date(rowData.dueDate) < new Date()) {
-    return 'overdue-row'
-  }
-  return ''
-}
-
-// Mark rental as returned
-async function markReturned(rental) {
+const markReturned = async (rental) => {
   try {
-    const res = await fetchPatch(`/rentals/${rental.id}`, { returnDate: formatDate2(new Date()) })
-    if (!res.ok) throw new Error('Failed to mark returned')
-    rental.returnDate = formatDate2(new Date())
-    toast.add({
-      severity: 'success',
-      summary: 'Rental returned',
-      detail: `${rental.vhs.title} marked as returned`,
-      life: 3000,
-    })
+    const now = new Date().toISOString().slice(0, 10)
+
+    const res = await fetchPatch(`/rentals/${rental.id}`, { returnDate: now })
+    if (res.status != 200) {
+      const errorDetail = await res.text()
+      showErrorToast(`Failed to mark returned ${rental.vhs.title}`, errorDetail)
+    } else {
+      rental.returnDate = now
+
+      toast.add({
+        severity: 'success',
+        summary: 'Rental returned',
+        detail: `${rental.vhs.title} marked as returned`,
+        group: 'bl',
+        life: 3000,
+      })
+    }
   } catch (err) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: err.message,
-      life: 3000,
-    })
+    showErrorToast(`Failed to mark returned ${rental.vhs.title}`, err)
   }
 }
 
-// Delete rental
-async function deleteRental(rental) {
+const deleteRental = async (rental) => {
   try {
     const res = await fetchDelete(`/rentals/${rental.id}`)
-    if (res.status != 204) throw new Error('Failed to delete rental')
-    rentals.value = rentals.value.filter((r) => r.id !== rental.id)
-    toast.add({
-      severity: 'info',
-      summary: 'Rental deleted',
-      detail: `${rental.vhs.title} deleted`,
-      life: 3000,
-    })
+    if (res.status != 204) {
+      showErrorToast('Delete fail', `Failed to delete rental of ${rental.vhs.title}`)
+    } else {
+      await loadRentals()
+
+      toast.add({
+        severity: 'success',
+        summary: 'Rental deleted',
+        detail: `${rental.vhs.title} deleted`,
+        group: 'bl',
+        life: 3000,
+      })
+    }
   } catch (err) {
-    const errorMessage = await res.text()
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: errorMessage,
-      life: 3000,
-    })
+    showErrorToast('Delete fail', err)
   }
 }
 
-function formatDate2(d) {
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0') // months start at 0
-  const day = String(d.getDate()).padStart(2, '0')
+const showErrorToast = (summary, detail) =>
+  toast.add({
+    severity: 'error',
+    summary,
+    detail: detail || 'Error',
+    group: 'bl',
+    life: 3000,
+  })
 
-  return `${year}-${month}-${day}`
-}
 defineExpose({ loadRentals })
 </script>
-
-<style scoped>
-.overdue-row {
-  background-color: #ffe6e6 !important; /* light red for overdue rentals */
-}
-</style>
