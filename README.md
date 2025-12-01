@@ -2,6 +2,16 @@
 
 Follow these steps to build and run the project locally.
 
+## Prerequisites
+
+Make sure the following are installed before starting the application:
+
+* PostgreSQL 18.1
+* Java 17.0
+* Apache Maven 3.6.3
+* npm 11.6.3
+* Docker 20.10.11
+
 ## 1. Build the Backend
 
 Navigate to the backend directory and build the project using Maven:
