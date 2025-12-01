@@ -1,37 +1,22 @@
 <template>
   <DataTable :value="rentals" paginator :rows="10" responsiveLayout="scroll">
-    <!-- VHS Title -->
     <Column field="vhs.title" header="VHS" sortable></Column>
-
-    <!-- Genre -->
     <Column field="vhs.genre" header="Genre" sortable></Column>
-
-    <!-- User -->
     <Column field="user.name" header="Rented By" sortable></Column>
-
-    <!-- Rental Date -->
     <Column
       field="rentalDate"
       header="Rented On"
       :body="formatDate('rentalDate')"
       sortable
     ></Column>
-
-    <!-- Due Date -->
     <Column field="dueDate" header="Due By" :body="formatDate('dueDate')" sortable></Column>
-
-    <!-- Return Date -->
     <Column
       field="returnDate"
       header="Returned On"
       :body="formatDate('returnDate')"
       sortable
     ></Column>
-
-    <!-- Late Fee -->
     <Column field="lateFee" header="Late Fee" :body="formatFee"></Column>
-
-    <!-- Status -->
     <Column header="Status">
       <template #body="{ data }">
         <span>
@@ -45,8 +30,6 @@
         </span>
       </template>
     </Column>
-
-    <!-- Actions -->
     <Column header="Actions" style="min-width: 150px">
       <template #body="{ data }">
         <div class="flex gap-2">
@@ -54,8 +37,6 @@
             v-if="!data.returnDate"
             label="Return"
             icon="pi pi-check"
-            severity="success"
-            rounded
             size="small"
             @click="markReturned(data)"
           />
@@ -63,7 +44,6 @@
             label="Delete"
             icon="pi pi-trash"
             severity="danger"
-            rounded
             size="small"
             @click="deleteRental(data)"
           />
